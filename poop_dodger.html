@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💩 SUBERUNKER - 똥 피하기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Press Start 2P', monospace;
+    overflow: hidden;
+  }
+
+  #gameWrapper {
+    position: relative;
+    border: 4px solid #e94560;
+    border-radius: 12px;
+    box-shadow:
+      0 0 30px rgba(233, 69, 96, 0.3),
+      0 0 60px rgba(233, 69, 96, 0.1),
+      inset 0 0 30px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    background: #16213e;
+  }
+
+  #overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(22, 33, 62, 0.92);
+    z-index: 10;
+    transition: opacity 0.3s;
+  }
+
+  #overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #overlay h1 {
+    color: #e94560;
+    font-size: 28px;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  #overlay .poop-title {
+    font-size: 48px;
+    margin-bottom: 20px;
+    animation: bounce 1s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  #overlay .subtitle {
+    color: #a8a8b3;
+    font-size: 10px;
+    margin-bottom: 30px;
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  #startBtn, #restartBtn {
+    background: #e94560;
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 0 #b8344d, 0 6px 20px rgba(233, 69, 96, 0.3);
+  }
+
+  #startBtn:hover, #restartBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #b8344d, 0 8px 25px rgba(233, 69, 96, 0.4);
+  }
+
+  #startBtn:active, #restartBtn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #b8344d;
+  }
+
+  #gameOverText {
+    color: #e94560;
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+  }
+
+  #finalScore {
+    color: #eee;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  #highScoreText {
+    color: #f5a623;
+    font-size: 11px;
+    margin-bottom: 24px;
+  }
+
+  .controls-hint {
+    color: #555;
+    font-size: 8px;
+    margin-top: 16px;
+    text-align: center;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+
+<div id="gameWrapper">
+  <canvas id="gameCanvas"></canvas>
+  <div id="overlay">
+    <div class="poop-title">💩</div>
+    <h1>SUBERUNKER</h1>
+    <div class="subtitle">
+      똥을 피하고 살아남아라!
+    </div>
+    <button id="startBtn">START</button>
+    <div class="controls-hint">
+      ← → 방향키 또는 터치로 이동<br>
+      ↑ 또는 스페이스바로 점프
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+
+// --- Canvas size ---
+const W = 400;
+const H = 600;
+canvas.width = W;
+canvas.height = H;
+
+// --- Game state ---
+let game = null;
+let highScore = 0;
+let animFrameId = null;
+
+// --- Stickman player ---
+class Player {
+  constructor() {
+    this.w = 28;
+    this.h = 44;
+    this.x = W / 2;
+    this.y = H - 60;
+    this.vx = 0;
+    this.vy = 0;
+    this.speed = 5;
+    this.onGround = true;
+    this.jumpPower = -11;
+    this.gravity = 0.55;
+    this.groundY = H - 60;
+    this.facing = 1; // 1 right, -1 left
+    this.walkFrame = 0;
+    this.walkTimer = 0;
+    this.isHit = false;
+    this.hitTimer = 0;
+  }
+
+  update(keys) {
+    // Horizontal movement
+    let moving = false;
+    if (keys.left) { this.vx = -this.speed; this.facing = -1; moving = true; }
+    else if (keys.right) { this.vx = this.speed; this.facing = 1; moving = true; }
+    else { this.vx = 0; }
+
+    // Walk animation
+    if (moving && this.onGround) {
+      this.walkTimer++;
+      if (this.walkTimer > 6) { this.walkTimer = 0; this.walkFrame = (this.walkFrame + 1) % 4; }
+    } else {
+      this.walkFrame = 0;
+      this.walkTimer = 0;
+    }
+
+    // Jump
+    if (keys.up && this.onGround) {
+      this.vy = this.jumpPower;
+      this.onGround = false;
+    }
+
+    // Apply gravity
+    this.vy += this.gravity;
+    this.y += this.vy;
+    this.x += this.vx;
+
+    // Ground collision
+    if (this.y >= this.groundY) {
+      this.y = this.groundY;
+      this.vy = 0;
+      this.onGround = true;
+    }
+
+    // Wall boundaries
+    if (this.x < 14) this.x = 14;
+    if (this.x > W - 14) this.x = W - 14;
+
+    // Hit flash
+    if (this.isHit) {
+      this.hitTimer--;
+      if (this.hitTimer <= 0) this.isHit = false;
+    }
+  }
+
+  draw(ctx) {
+    if (this.isHit && Math.floor(this.hitTimer / 3) % 2 === 0) return; // blink
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    const legOffset = [0, 4, 0, -4][this.walkFrame];
+    const armOffset = [0, -3, 0, 3][this.walkFrame];
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(0, 22, 14, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    // Left leg
+    ctx.beginPath();
+    ctx.moveTo(0, 8);
+    ctx.lineTo(-6 + legOffset, 20);
+    ctx.stroke();
+    // Right leg
+    ctx.beginPath();
+    ctx.moveTo(0, 8);
+    ctx.lineTo(6 - legOffset, 20);
+    ctx.stroke();
+
+    // Body
+    ctx.beginPath();
+    ctx.moveTo(0, -8);
+    ctx.lineTo(0, 8);
+    ctx.stroke();
+
+    // Arms
+    ctx.lineWidth = 2.5;
+    // Left arm
+    ctx.beginPath();
+    ctx.moveTo(0, -4);
+    ctx.lineTo(-10 + armOffset, 4);
+    ctx.stroke();
+    // Right arm
+    ctx.beginPath();
+    ctx.moveTo(0, -4);
+    ctx.lineTo(10 - armOffset, 4);
+    ctx.stroke();
+
+    // Head
+    ctx.fillStyle = '#e0e0e0';
+    ctx.beginPath();
+    ctx.arc(0, -14, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = '#16213e';
+    ctx.beginPath();
+    ctx.arc(this.facing * 2 - 2, -15, 1.5, 0, Math.PI * 2);
+    ctx.arc(this.facing * 2 + 3, -15, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  getBounds() {
+    return { x: this.x - 10, y: this.y - 22, w: 20, h: 42 };
+  }
+}
+
+// --- Poop class ---
+class Poop {
+  constructor(speed, sway) {
+    this.size = 20 + Math.random() * 16;
+    this.x = Math.random() * (W - 40) + 20;
+    this.y = -this.size;
+    this.speed = speed + Math.random() * 2.5;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.08;
+    this.sway = sway ? (Math.random() - 0.5) * 2 : 0;
+    this.swayBase = this.x;
+    this.swayAngle = Math.random() * Math.PI * 2;
+  }
+
+  update() {
+    this.y += this.speed;
+    this.rotation += this.rotSpeed;
+    if (this.sway) {
+      this.swayAngle += 0.04;
+      this.x = this.swayBase + Math.sin(this.swayAngle) * 40;
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+
+    const s = this.size;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath();
+    ctx.ellipse(2, s * 0.35, s * 0.45, s * 0.15, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Poop body (stacked blobs)
+    ctx.fillStyle = '#8B6914';
+    // Bottom blob
+    ctx.beginPath();
+    ctx.ellipse(0, s * 0.18, s * 0.4, s * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Middle blob
+    ctx.fillStyle = '#9B7424';
+    ctx.beginPath();
+    ctx.ellipse(0, -s * 0.02, s * 0.3, s * 0.17, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Top blob
+    ctx.fillStyle = '#A88030';
+    ctx.beginPath();
+    ctx.ellipse(0, -s * 0.2, s * 0.18, s * 0.13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Tip
+    ctx.fillStyle = '#A88030';
+    ctx.beginPath();
+    ctx.arc(0, -s * 0.33, s * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(-s * 0.12, -s * 0.05, s * 0.07, 0, Math.PI * 2);
+    ctx.arc(s * 0.12, -s * 0.05, s * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(-s * 0.10, -s * 0.04, s * 0.035, 0, Math.PI * 2);
+    ctx.arc(s * 0.14, -s * 0.04, s * 0.035, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  getBounds() {
+    return { x: this.x - this.size * 0.35, y: this.y - this.size * 0.3, w: this.size * 0.7, h: this.size * 0.55 };
+  }
+
+  isOffScreen() {
+    return this.y > H + 30;
+  }
+}
+
+// --- Particle (splat) ---
+class Particle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = (Math.random() - 0.5) * 6;
+    this.vy = -Math.random() * 5 - 2;
+    this.life = 30 + Math.random() * 20;
+    this.maxLife = this.life;
+    this.size = 3 + Math.random() * 4;
+    this.color = ['#8B6914', '#9B7424', '#A88030', '#6B5010'][Math.floor(Math.random() * 4)];
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.2;
+    this.life--;
+  }
+  draw(ctx) {
+    const alpha = this.life / this.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+// --- Star (background) ---
+class Star {
+  constructor() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.size = Math.random() * 1.5 + 0.5;
+    this.blinkSpeed = Math.random() * 0.03 + 0.01;
+    this.blinkOffset = Math.random() * Math.PI * 2;
+  }
+  draw(ctx, time) {
+    const alpha = 0.3 + Math.sin(time * this.blinkSpeed + this.blinkOffset) * 0.25;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fillRect(this.x, this.y, this.size, this.size);
+  }
+}
+
+// --- Game class ---
+class Game {
+  constructor() {
+    this.player = new Player();
+    this.poops = [];
+    this.particles = [];
+    this.stars = Array.from({ length: 50 }, () => new Star());
+    this.score = 0;
+    this.lives = 3;
+    this.time = 0;
+    this.spawnTimer = 0;
+    this.spawnInterval = 30;
+    this.difficulty = 2;
+    this.gameOver = false;
+    this.dodged = 0;
+    this.combo = 0;
+    this.maxCombo = 0;
+    this.shakeTimer = 0;
+    this.shakeIntensity = 0;
+    this.keys = { left: false, right: false, up: false };
+    this.comboText = '';
+    this.comboTextTimer = 0;
+  }
+
+  update() {
+    if (this.gameOver) return;
+
+    this.time++;
+    this.difficulty = 2 + Math.floor(this.time / 300) * 0.5;
+    this.score = Math.floor(this.time / 6);
+
+    // Spawn poops
+    this.spawnTimer++;
+    const interval = Math.max(10, this.spawnInterval - this.difficulty * 3);
+    if (this.spawnTimer >= interval) {
+      this.spawnTimer = 0;
+      const baseSpeed = 3.5 + this.difficulty * 0.7;
+      const canSway = Math.random() < 0.25;
+      this.poops.push(new Poop(baseSpeed, canSway));
+
+      // Extra poops — frequent from the start
+      if (Math.random() < 0.35) {
+        this.poops.push(new Poop(baseSpeed + 0.5 + Math.random(), Math.random() < 0.2));
+      }
+      // Occasional triple spawn at higher difficulty
+      if (this.difficulty > 3 && Math.random() < 0.25) {
+        this.poops.push(new Poop(baseSpeed + 1.5, Math.random() < 0.4));
+      }
+    }
+
+    // Update player
+    this.player.update(this.keys);
+
+    // Update poops
+    for (let i = this.poops.length - 1; i >= 0; i--) {
+      const p = this.poops[i];
+      p.update();
+
+      if (p.isOffScreen()) {
+        this.poops.splice(i, 1);
+        this.dodged++;
+        this.combo++;
+        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+
+        // Combo milestones
+        if (this.combo % 10 === 0 && this.combo > 0) {
+          this.comboText = `🔥 ${this.combo} COMBO!`;
+          this.comboTextTimer = 60;
+        }
+        continue;
+      }
+
+      // Collision check
+      if (!this.player.isHit && this.checkCollision(this.player.getBounds(), p.getBounds())) {
+        this.lives--;
+        this.combo = 0;
+        this.player.isHit = true;
+        this.player.hitTimer = 40;
+        this.shakeTimer = 12;
+        this.shakeIntensity = 6;
+
+        // Splat particles
+        for (let j = 0; j < 12; j++) {
+          this.particles.push(new Particle(p.x, p.y));
+        }
+
+        this.poops.splice(i, 1);
+
+        if (this.lives <= 0) {
+          this.gameOver = true;
+          if (this.score > highScore) highScore = this.score;
+          setTimeout(() => showGameOver(), 500);
+        }
+      }
+    }
+
+    // Update particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      this.particles[i].update();
+      if (this.particles[i].life <= 0) this.particles.splice(i, 1);
+    }
+
+    // Screen shake
+    if (this.shakeTimer > 0) this.shakeTimer--;
+
+    // Combo text timer
+    if (this.comboTextTimer > 0) this.comboTextTimer--;
+  }
+
+  checkCollision(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  draw() {
+    ctx.save();
+
+    // Screen shake
+    if (this.shakeTimer > 0) {
+      const s = this.shakeIntensity * (this.shakeTimer / 12);
+      ctx.translate((Math.random() - 0.5) * s, (Math.random() - 0.5) * s);
+    }
+
+    // Background
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#0f1123');
+    grad.addColorStop(1, '#16213e');
+    ctx.fillStyle = grad;
+    ctx.fillRect(-10, -10, W + 20, H + 20);
+
+    // Stars
+    this.stars.forEach(s => s.draw(ctx, this.time));
+
+    // Ground
+    ctx.fillStyle = '#1a2744';
+    ctx.fillRect(0, H - 35, W, 35);
+    ctx.strokeStyle = '#2a3f6a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, H - 35);
+    ctx.lineTo(W, H - 35);
+    ctx.stroke();
+
+    // Dots on ground
+    ctx.fillStyle = '#2a3f6a';
+    for (let i = 0; i < W; i += 20) {
+      ctx.fillRect(i + ((this.time * 0.5) % 20), H - 28, 2, 2);
+    }
+
+    // Poops
+    this.poops.forEach(p => p.draw(ctx));
+
+    // Particles
+    this.particles.forEach(p => p.draw(ctx));
+
+    // Player
+    this.player.draw(ctx);
+
+    // HUD
+    this.drawHUD();
+
+    ctx.restore();
+  }
+
+  drawHUD() {
+    // Score
+    ctx.fillStyle = '#e94560';
+    ctx.font = '16px "Press Start 2P", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`SCORE`, 12, 28);
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px "Press Start 2P", monospace';
+    ctx.fillText(`${this.score}`, 12, 52);
+
+    // Lives (hearts)
+    ctx.textAlign = 'right';
+    ctx.font = '18px sans-serif';
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < this.lives ? '#e94560' : '#333';
+      ctx.fillText('❤️', W - 12 - i * 28, 30);
+    }
+
+    // Difficulty indicator
+    ctx.fillStyle = '#f5a623';
+    ctx.font = '8px "Press Start 2P", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(`LV ${Math.floor(this.difficulty)}`, W - 12, 52);
+
+    // Combo text
+    if (this.comboTextTimer > 0) {
+      const alpha = Math.min(1, this.comboTextTimer / 20);
+      const scale = 1 + (1 - this.comboTextTimer / 60) * 0.3;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'center';
+      ctx.font = `${14 * scale}px "Press Start 2P", monospace`;
+      ctx.fillStyle = '#f5a623';
+      ctx.fillText(this.comboText, W / 2, H / 2 - 40);
+      ctx.restore();
+    }
+  }
+}
+
+// --- Input ---
+const keys = {};
+document.addEventListener('keydown', e => {
+  if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'Space'].includes(e.code)) e.preventDefault();
+  if (game && !game.gameOver) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') game.keys.left = true;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') game.keys.right = true;
+    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') game.keys.up = true;
+  }
+});
+document.addEventListener('keyup', e => {
+  if (game) {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') game.keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') game.keys.right = false;
+    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') game.keys.up = false;
+  }
+});
+
+// Touch controls
+let touchStartX = null;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  touchStartX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
+
+  if (game && !game.gameOver) {
+    const midX = rect.width / 2;
+    if (touchY < rect.height * 0.5) {
+      game.keys.up = true;
+    }
+    if (touchStartX < midX) {
+      game.keys.left = true;
+      game.keys.right = false;
+    } else {
+      game.keys.right = true;
+      game.keys.left = false;
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (game) {
+    game.keys.left = false;
+    game.keys.right = false;
+    game.keys.up = false;
+  }
+}, { passive: false });
+
+// --- Game loop ---
+function gameLoop() {
+  if (!game) return;
+  game.update();
+  game.draw();
+  animFrameId = requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+  overlay.classList.add('hidden');
+  game = new Game();
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  gameLoop();
+}
+
+function showGameOver() {
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="poop-title">💀</div>
+    <div id="gameOverText">GAME OVER</div>
+    <div id="finalScore">SCORE: ${game.score}</div>
+    <div id="highScoreText">🏆 BEST: ${highScore}</div>
+    <button id="restartBtn" onclick="startGame()">RETRY</button>
+    <div class="controls-hint">
+      ← → 방향키 또는 터치로 이동<br>
+      ↑ 또는 스페이스바로 점프
+    </div>
+  `;
+}
+
+startBtn.addEventListener('click', startGame);
+</script>
+</body>
+</html>
