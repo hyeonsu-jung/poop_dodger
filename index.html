@@ -605,11 +605,10 @@ class Game {
     ctx.fillText(`${this.score}`, 12, 52);
 
     // Lives (hearts)
-    ctx.textAlign = 'right';
-    ctx.font = '18px sans-serif';
     for (let i = 0; i < 3; i++) {
-      ctx.fillStyle = i < this.lives ? '#e94560' : '#333';
-      ctx.fillText('❤️', W - 12 - i * 28, 30);
+      const hx = W - 24 - i * 30;
+      const hy = 22;
+      this.drawHeart(ctx, hx, hy, 10, i < this.lives ? '#e94560' : '#333');
     }
 
     // Difficulty indicator
@@ -630,6 +629,20 @@ class Game {
       ctx.fillText(this.comboText, W / 2, H / 2 - 40);
       ctx.restore();
     }
+  }
+
+  drawHeart(ctx, x, y, size, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x, y + size * 0.3);
+    ctx.bezierCurveTo(x, y - size * 0.3, x - size, y - size * 0.3, x - size, y + size * 0.1);
+    ctx.bezierCurveTo(x - size, y + size * 0.6, x, y + size, x, y + size * 1.2);
+    ctx.bezierCurveTo(x, y + size, x + size, y + size * 0.6, x + size, y + size * 0.1);
+    ctx.bezierCurveTo(x + size, y - size * 0.3, x, y - size * 0.3, x, y + size * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 }
 
