@@ -186,6 +186,8 @@ const lbEmpty   = document.getElementById('lbEmpty');
 let topRecord = null;
 
 async function openLeaderboard(myScore=null) {
+  // 시작화면/게임오버 overlay가 열려있으면 lbPanel 뒤에서 클릭을 막으므로 숨김
+  overlay.classList.add('hidden');
   lbPanel.classList.add('visible');
   lbBody.innerHTML=''; lbLoading.style.display='block'; lbEmpty.style.display='none';
   try {
@@ -211,7 +213,13 @@ async function openLeaderboard(myScore=null) {
   } catch(e) { lbLoading.textContent='⚠ 불러오기 실패'; console.error(e); }
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-document.getElementById('lbCloseBtn').onclick=()=>lbPanel.classList.remove('visible');
+document.getElementById('lbCloseBtn').onclick=()=>{
+  lbPanel.classList.remove('visible');
+  // 게임이 진행 중이 아닐 때(시작화면/게임오버)만 overlay 복원
+  if(!game || game.gameOver){
+    overlay.classList.remove('hidden');
+  }
+};
 
 // ============================================================
 // CANVAS SETUP
