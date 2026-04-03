@@ -113,7 +113,7 @@
     line-height: 2.2;
   }
 
-  /* ── NICKNAME INPUT (game over) ── */
+  /* ── NICKNAME INPUT ── */
   #nicknameSection {
     display: flex;
     flex-direction: column;
@@ -121,11 +121,7 @@
     margin-bottom: 14px;
     width: 100%;
   }
-  #nicknameLabel {
-    color: #a8a8b3;
-    font-size: 11px;
-    margin-bottom: 8px;
-  }
+  #nicknameLabel { color: #a8a8b3; font-size: 11px; margin-bottom: 8px; }
   #nicknameInputRow {
     display: flex;
     gap: 6px;
@@ -152,13 +148,9 @@
     font-size: 11px;
     padding: 8px 12px;
   }
-  #submitScoreBtn:hover { box-shadow: 0 5px 0 #2980b9; }
+  #submitScoreBtn:hover  { box-shadow: 0 5px 0 #2980b9; }
   #submitScoreBtn:active { box-shadow: 0 1px 0 #2980b9; }
-  #submitMsg {
-    font-size: 11px;
-    margin-top: 6px;
-    min-height: 16px;
-  }
+  #submitMsg { font-size: 11px; margin-top: 6px; min-height: 16px; }
 
   /* ── LEADERBOARD PANEL ── */
   #lbPanel {
@@ -184,41 +176,24 @@
     margin-bottom: 4px;
     letter-spacing: 1px;
   }
-  #lbSubtitle {
-    color: #555;
-    font-size: 10px;
-    margin-bottom: 16px;
-  }
+  #lbSubtitle { color: #555; font-size: 10px; margin-bottom: 16px; }
 
-  #lbTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11px;
-  }
+  #lbTable { width: 100%; border-collapse: collapse; font-size: 11px; }
   #lbTable thead tr th {
-    color: #555;
-    font-size: 10px;
-    padding: 4px 6px;
-    border-bottom: 1px solid #1e2d50;
-    text-align: left;
+    color: #555; font-size: 10px; padding: 4px 6px;
+    border-bottom: 1px solid #1e2d50; text-align: left;
   }
   #lbTable thead tr th:nth-child(1) { width: 28px; text-align: center; }
   #lbTable thead tr th:nth-child(3),
   #lbTable thead tr th:nth-child(4) { text-align: right; }
 
-  #lbTable tbody tr {
-    border-bottom: 1px solid #111d35;
-    transition: background 0.15s;
-  }
+  #lbTable tbody tr { border-bottom: 1px solid #111d35; transition: background 0.15s; }
   #lbTable tbody tr:hover { background: rgba(233,69,96,0.06); }
   #lbTable tbody tr.my-score { background: rgba(245,166,35,0.1); }
   #lbTable tbody tr.my-score td { color: #f5a623; }
 
   #lbTable tbody td {
-    padding: 7px 6px;
-    color: #ccc;
-    vertical-align: middle;
-    line-height: 1.4;
+    padding: 7px 6px; color: #ccc; vertical-align: middle; line-height: 1.4;
   }
   #lbTable tbody td:nth-child(1) { text-align: center; color: #555; }
   #lbTable tbody td:nth-child(3),
@@ -226,30 +201,19 @@
 
   .rank-medal { font-size: 16px; }
   .stage-badge {
-    background: #1a2744;
-    border-radius: 4px;
-    padding: 2px 5px;
-    font-size: 7px;
-    color: #4aa3df;
+    background: #1a2744; border-radius: 4px;
+    padding: 2px 5px; font-size: 9px; color: #4aa3df;
   }
 
   #lbLoading, #lbEmpty {
-    color: #555;
-    font-size: 11px;
-    margin-top: 40px;
-    text-align: center;
-    line-height: 2;
+    color: #555; font-size: 11px; margin-top: 40px;
+    text-align: center; line-height: 2;
   }
-
   #lbCloseBtn { margin-top: 16px; }
 
-  /* scrollable tbody */
   #lbScrollWrap {
-    width: 100%;
-    overflow-y: auto;
-    max-height: 380px;
-    scrollbar-width: thin;
-    scrollbar-color: #2a3f6a #0f1b33;
+    width: 100%; overflow-y: auto; max-height: 380px;
+    scrollbar-width: thin; scrollbar-color: #2a3f6a #0f1b33;
   }
   #lbScrollWrap::-webkit-scrollbar { width: 4px; }
   #lbScrollWrap::-webkit-scrollbar-track { background: #0f1b33; }
@@ -261,7 +225,7 @@
 <div id="gameWrapper">
   <canvas id="gameCanvas"></canvas>
 
-  <!-- ── START / GAME-OVER OVERLAY ── -->
+  <!-- ── START OVERLAY ── -->
   <div id="overlay">
     <div class="poop-title">💩</div>
     <h1>Poop Survivor</h1>
@@ -284,10 +248,7 @@
       <table id="lbTable">
         <thead>
           <tr>
-            <th>순위</th>
-            <th>닉네임</th>
-            <th>점수</th>
-            <th>스테이지</th>
+            <th>순위</th><th>닉네임</th><th>점수</th><th>스테이지</th>
           </tr>
         </thead>
         <tbody id="lbBody"></tbody>
@@ -301,55 +262,33 @@
 
 <script>
 // ============================================================
-// SUPABASE CONFIG
+// API — Supabase 키 없이 /api/scores 프록시만 사용
 // ============================================================
-const SUPABASE_URL = 'https://lsxzjsjioeoqgvxnwjvv.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_WzC4n0RfdrRJe70lPMnLqQ_l54U1T1t';
-const TABLE = 'poop_leaderboard';
-
-async function sbFetch(path, options = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    ...options,
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': options.prefer || '',
-      ...(options.headers || {}),
-    },
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
-}
-
 async function fetchLeaderboard() {
-  return sbFetch(`${TABLE}?select=*&order=score.desc&limit=10`);
+  const res = await fetch('/api/scores');
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
 async function insertScore(nickname, score, stage) {
-  return sbFetch(TABLE, {
+  const res = await fetch('/api/scores', {
     method: 'POST',
-    prefer: 'return=representation',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nickname, score, stage }),
   });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
 // ============================================================
 // LEADERBOARD UI
 // ============================================================
-const lbPanel  = document.getElementById('lbPanel');
-const lbBody   = document.getElementById('lbBody');
-const lbLoading= document.getElementById('lbLoading');
-const lbEmpty  = document.getElementById('lbEmpty');
-
-let lastMyScore = null; // { nickname, score } — highlight my row
+const lbPanel   = document.getElementById('lbPanel');
+const lbBody    = document.getElementById('lbBody');
+const lbLoading = document.getElementById('lbLoading');
+const lbEmpty   = document.getElementById('lbEmpty');
 
 async function openLeaderboard(myScore = null) {
-  lastMyScore = myScore;
   lbPanel.classList.add('visible');
   lbBody.innerHTML = '';
   lbLoading.style.display = 'block';
@@ -359,24 +298,17 @@ async function openLeaderboard(myScore = null) {
     const rows = await fetchLeaderboard();
     lbLoading.style.display = 'none';
 
-    if (!rows || rows.length === 0) {
-      lbEmpty.style.display = 'block';
-      return;
-    }
+    if (!rows || rows.length === 0) { lbEmpty.style.display = 'block'; return; }
 
     const medals = ['🥇','🥈','🥉'];
+    const stageColors = ['','#4aa3df','#2ecc71','#f5a623','#e94560','#9b59b6'];
+
     rows.forEach((row, i) => {
       const isMe = myScore && row.nickname === myScore.nickname && row.score === myScore.score;
       const rankCell = i < 3
         ? `<span class="rank-medal">${medals[i]}</span>`
         : `<span style="color:#555">${i+1}</span>`;
-
-      const date = new Date(row.created_at);
-      const dateStr = `${date.getMonth()+1}/${date.getDate()}`;
-
-      const stageColors = ['','#4aa3df','#2ecc71','#f5a623','#e94560','#9b59b6'];
       const sc = stageColors[Math.min(row.stage, 5)] || '#4aa3df';
-
       const tr = document.createElement('tr');
       if (isMe) tr.classList.add('my-score');
       tr.innerHTML = `
@@ -387,7 +319,6 @@ async function openLeaderboard(myScore = null) {
       `;
       lbBody.appendChild(tr);
     });
-
   } catch(e) {
     lbLoading.textContent = '⚠ 불러오기 실패';
     console.error(e);
@@ -395,20 +326,19 @@ async function openLeaderboard(myScore = null) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-document.getElementById('lbCloseBtn').onclick = () => {
-  lbPanel.classList.remove('visible');
-};
+document.getElementById('lbCloseBtn').onclick = () => lbPanel.classList.remove('visible');
 
 // ============================================================
-// CANVAS / GAME SETUP
+// CANVAS SETUP
 // ============================================================
-const canvas = document.getElementById('gameCanvas');
-const ctx    = canvas.getContext('2d');
-const overlay= document.getElementById('overlay');
-const startBtn = document.getElementById('startBtn');
+const canvas  = document.getElementById('gameCanvas');
+const ctx     = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const startBtn= document.getElementById('startBtn');
 
 const W = 400, H = 600;
 canvas.width = W; canvas.height = H;
@@ -423,24 +353,24 @@ let animFrameId = null;
 const STAGES = [
   { name:'STAGE 1', color:'#4aa3df',
     spawnInterval:28, baseSpeed:3.8, speedVariance:2.0,
-    doubleChance:0.30, tripleChance:0, swayChance:0.15,
+    doubleChance:0.30, tripleChance:0,    swayChance:0.15,
     shieldDrop:false, shieldDropInterval:9999, freeShields:0, scoreThreshold:0 },
   { name:'STAGE 2', color:'#2ecc71',
     spawnInterval:24, baseSpeed:4.5, speedVariance:2.5,
     doubleChance:0.40, tripleChance:0.10, swayChance:0.25,
-    shieldDrop:true, shieldDropInterval:550, freeShields:1, scoreThreshold:50 },
+    shieldDrop:true,  shieldDropInterval:550, freeShields:1, scoreThreshold:50 },
   { name:'STAGE 3', color:'#f5a623',
     spawnInterval:20, baseSpeed:5.2, speedVariance:3.0,
     doubleChance:0.50, tripleChance:0.20, swayChance:0.35,
-    shieldDrop:true, shieldDropInterval:480, freeShields:1, scoreThreshold:150 },
+    shieldDrop:true,  shieldDropInterval:480, freeShields:1, scoreThreshold:150 },
   { name:'STAGE 4', color:'#e94560',
     spawnInterval:16, baseSpeed:6.0, speedVariance:3.5,
     doubleChance:0.55, tripleChance:0.30, swayChance:0.45,
-    shieldDrop:true, shieldDropInterval:420, freeShields:1, scoreThreshold:300 },
+    shieldDrop:true,  shieldDropInterval:420, freeShields:1, scoreThreshold:300 },
   { name:'STAGE 5', color:'#9b59b6',
     spawnInterval:12, baseSpeed:7.0, speedVariance:4.0,
     doubleChance:0.60, tripleChance:0.40, swayChance:0.55,
-    shieldDrop:true, shieldDropInterval:380, freeShields:1, scoreThreshold:500 },
+    shieldDrop:true,  shieldDropInterval:380, freeShields:1, scoreThreshold:500 },
 ];
 
 // ============================================================
@@ -460,21 +390,22 @@ class Player {
     let moving=false;
     if(keys.left){this.vx=-this.speed;this.facing=-1;moving=true;}
     else if(keys.right){this.vx=this.speed;this.facing=1;moving=true;}
-    else{this.vx=0;}
+    else this.vx=0;
     if(moving&&this.onGround){this.walkTimer++;if(this.walkTimer>6){this.walkTimer=0;this.walkFrame=(this.walkFrame+1)%4;}}
     else{this.walkFrame=0;this.walkTimer=0;}
     if(keys.up&&this.onGround){this.vy=this.jumpPower;this.onGround=false;}
-    this.vy+=this.gravity;this.y+=this.vy;this.x+=this.vx;
+    this.vy+=this.gravity; this.y+=this.vy; this.x+=this.vx;
     if(this.y>=this.groundY){this.y=this.groundY;this.vy=0;this.onGround=true;}
-    if(this.x<14)this.x=14;if(this.x>W-14)this.x=W-14;
+    if(this.x<14)this.x=14; if(this.x>W-14)this.x=W-14;
     if(this.isHit){this.hitTimer--;if(this.hitTimer<=0)this.isHit=false;}
   }
   draw(ctx,hasShield,time) {
     if(this.isHit&&Math.floor(this.hitTimer/3)%2===0)return;
-    ctx.save();ctx.translate(this.x,this.y);
+    ctx.save(); ctx.translate(this.x,this.y);
     const legOff=[0,4,0,-4][this.walkFrame];
     const armOff=[0,-3,0,3][this.walkFrame];
-    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(0,22,14,4,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.beginPath();ctx.ellipse(0,22,14,4,0,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#e0e0e0';ctx.lineWidth=3;ctx.lineCap='round';
     ctx.beginPath();ctx.moveTo(0,8);ctx.lineTo(-6+legOff,20);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,8);ctx.lineTo(6-legOff,20);ctx.stroke();
@@ -482,7 +413,8 @@ class Player {
     ctx.lineWidth=2.5;
     ctx.beginPath();ctx.moveTo(0,-4);ctx.lineTo(-10+armOff,4);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,-4);ctx.lineTo(10-armOff,4);ctx.stroke();
-    ctx.fillStyle='#e0e0e0';ctx.beginPath();ctx.arc(0,-14,8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#e0e0e0';
+    ctx.beginPath();ctx.arc(0,-14,8,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#e0e0e0';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='#16213e';
     ctx.beginPath();
@@ -505,14 +437,14 @@ class Player {
 class Poop {
   constructor(speed,sway){
     this.size=20+Math.random()*16;
-    this.x=Math.random()*(W-40)+20;this.y=-this.size;
+    this.x=Math.random()*(W-40)+20; this.y=-this.size;
     this.speed=speed+Math.random()*2.5;
     this.rotation=Math.random()*Math.PI*2;
     this.rotSpeed=(Math.random()-0.5)*0.08;
-    this.sway=sway?true:false;this.swayBase=this.x;this.swayAngle=Math.random()*Math.PI*2;
+    this.sway=!!sway; this.swayBase=this.x; this.swayAngle=Math.random()*Math.PI*2;
   }
   update(){
-    this.y+=this.speed;this.rotation+=this.rotSpeed;
+    this.y+=this.speed; this.rotation+=this.rotSpeed;
     if(this.sway){this.swayAngle+=0.04;this.x=this.swayBase+Math.sin(this.swayAngle)*40;}
   }
   draw(ctx){
@@ -536,14 +468,14 @@ class Poop {
 // ============================================================
 class ShieldItem {
   constructor(){
-    this.x=Math.random()*(W-60)+30;this.y=-20;
-    this.speed=2+Math.random();this.size=16;
-    this.bobAngle=Math.random()*Math.PI*2;this.glow=0;
+    this.x=Math.random()*(W-60)+30; this.y=-20;
+    this.speed=2+Math.random(); this.size=16;
+    this.bobAngle=Math.random()*Math.PI*2; this.glow=0;
   }
   update(){this.y+=this.speed;this.bobAngle+=0.06;this.glow++;}
   draw(ctx){
     ctx.save();ctx.translate(this.x,this.y+Math.sin(this.bobAngle)*4);
-    const s=this.size;const ga=0.3+Math.sin(this.glow*0.1)*0.2;
+    const s=this.size; const ga=0.3+Math.sin(this.glow*0.1)*0.2;
     ctx.fillStyle=`rgba(74,163,255,${ga})`;ctx.beginPath();ctx.arc(0,0,s+6,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#4aa3df';ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#2980b9';ctx.beginPath();ctx.arc(0,0,s-4,0,Math.PI*2);ctx.fill();
@@ -562,9 +494,9 @@ class ShieldItem {
 // ============================================================
 class Particle {
   constructor(x,y,color){
-    this.x=x;this.y=y;
-    this.vx=(Math.random()-0.5)*6;this.vy=-Math.random()*5-2;
-    this.life=30+Math.random()*20;this.maxLife=this.life;
+    this.x=x; this.y=y;
+    this.vx=(Math.random()-0.5)*6; this.vy=-Math.random()*5-2;
+    this.life=30+Math.random()*20; this.maxLife=this.life;
     this.size=3+Math.random()*4;
     this.color=color||['#8B6914','#9B7424','#A88030','#6B5010'][Math.floor(Math.random()*4)];
   }
@@ -581,9 +513,10 @@ class Particle {
 // ============================================================
 class Star {
   constructor(){
-    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.x=Math.random()*W; this.y=Math.random()*H;
     this.size=Math.random()*1.5+0.5;
-    this.blinkSpeed=Math.random()*0.03+0.01;this.blinkOffset=Math.random()*Math.PI*2;
+    this.blinkSpeed=Math.random()*0.03+0.01;
+    this.blinkOffset=Math.random()*Math.PI*2;
   }
   draw(ctx,time){
     ctx.fillStyle=`rgba(255,255,255,${0.3+Math.sin(time*this.blinkSpeed+this.blinkOffset)*0.25})`;
@@ -597,71 +530,91 @@ class Star {
 class Game {
   constructor(){
     this.player=new Player();
-    this.poops=[];this.shieldItems=[];this.particles=[];
+    this.poops=[]; this.shieldItems=[]; this.particles=[];
     this.stars=Array.from({length:50},()=>new Star());
-    this.score=0;this.lives=3;this.shields=0;this.maxShields=3;
-    this.time=0;this.spawnTimer=0;this.shieldSpawnTimer=0;
-    this.stage=0;this.gameOver=false;this.dodged=0;
-    this.combo=0;this.maxCombo=0;
-    this.shakeTimer=0;this.shakeIntensity=0;
+    this.score=0; this.lives=3; this.shields=0; this.maxShields=3;
+    this.time=0; this.spawnTimer=0; this.shieldSpawnTimer=0;
+    this.stage=0; this.gameOver=false;
+    this.dodged=0; this.combo=0; this.maxCombo=0;
+    this.shakeTimer=0; this.shakeIntensity=0;
     this.keys={left:false,right:false,up:false};
-    this.comboText='';this.comboTextTimer=0;
-    this.stageText=STAGES[0].name;this.stageTextTimer=90;
-    this.shieldText='';this.shieldTextTimer=0;
+    this.comboText=''; this.comboTextTimer=0;
+    this.stageText=STAGES[0].name; this.stageTextTimer=90;
+    this.shieldText=''; this.shieldTextTimer=0;
   }
   cfg(){return STAGES[this.stage];}
+
   update(){
     if(this.gameOver)return;
-    this.time++;this.score=Math.floor(this.time/6);
+    this.time++; this.score=Math.floor(this.time/6);
+
+    // Stage progression
     let ns=0;
     for(let i=STAGES.length-1;i>=0;i--){if(this.score>=STAGES[i].scoreThreshold){ns=i;break;}}
     if(ns!==this.stage){
-      this.stage=ns;const c=this.cfg();
-      this.stageText=c.name;this.stageTextTimer=90;
+      this.stage=ns; const c=this.cfg();
+      this.stageText=c.name; this.stageTextTimer=90;
       if(this.stage>=1&&c.freeShields>0&&this.shields<this.maxShields){
         this.shields=Math.min(this.maxShields,this.shields+c.freeShields);
-        this.shieldText=`방패 지급! (${this.shields}/${this.maxShields})`;this.shieldTextTimer=70;
+        this.shieldText=`방패 지급! (${this.shields}/${this.maxShields})`; this.shieldTextTimer=70;
       }
     }
     const c=this.cfg();
+
+    // Spawn poops
     this.spawnTimer++;
     if(this.spawnTimer>=c.spawnInterval){
       this.spawnTimer=0;
       this.poops.push(new Poop(c.baseSpeed,Math.random()<c.swayChance));
-      if(Math.random()<c.doubleChance) this.poops.push(new Poop(c.baseSpeed+0.5+Math.random()*c.speedVariance*0.3,Math.random()<c.swayChance));
-      if(Math.random()<c.tripleChance) this.poops.push(new Poop(c.baseSpeed+1.0+Math.random()*c.speedVariance*0.5,Math.random()<c.swayChance*1.2));
+      if(Math.random()<c.doubleChance)
+        this.poops.push(new Poop(c.baseSpeed+0.5+Math.random()*c.speedVariance*0.3,Math.random()<c.swayChance));
+      if(Math.random()<c.tripleChance)
+        this.poops.push(new Poop(c.baseSpeed+1.0+Math.random()*c.speedVariance*0.5,Math.random()<c.swayChance*1.2));
     }
+
+    // Spawn shields
     if(c.shieldDrop){
       this.shieldSpawnTimer++;
-      if(this.shieldSpawnTimer>=c.shieldDropInterval){this.shieldSpawnTimer=0;if(this.shields<this.maxShields)this.shieldItems.push(new ShieldItem());}
+      if(this.shieldSpawnTimer>=c.shieldDropInterval){
+        this.shieldSpawnTimer=0;
+        if(this.shields<this.maxShields)this.shieldItems.push(new ShieldItem());
+      }
     }
+
     this.player.update(this.keys);
+
+    // Shield item collision
     for(let i=this.shieldItems.length-1;i>=0;i--){
-      const si=this.shieldItems[i];si.update();
+      const si=this.shieldItems[i]; si.update();
       if(si.isOffScreen()){this.shieldItems.splice(i,1);continue;}
       if(this.checkCol(this.player.getBounds(),si.getBounds())){
         if(this.shields<this.maxShields){
-          this.shields++;this.shieldText=`방패 획득! (${this.shields}/${this.maxShields})`;this.shieldTextTimer=70;
-          for(let j=0;j<8;j++)this.particles.push(new Particle(si.x,si.y,['#4aa3df','#2980b9','#74b9ff','#a3d8f4'][Math.floor(Math.random()*4)]));
+          this.shields++;
+          this.shieldText=`방패 획득! (${this.shields}/${this.maxShields})`; this.shieldTextTimer=70;
+          for(let j=0;j<8;j++)
+            this.particles.push(new Particle(si.x,si.y,['#4aa3df','#2980b9','#74b9ff','#a3d8f4'][Math.floor(Math.random()*4)]));
         }
         this.shieldItems.splice(i,1);
       }
     }
+
+    // Poop collision
     for(let i=this.poops.length-1;i>=0;i--){
-      const p=this.poops[i];p.update();
+      const p=this.poops[i]; p.update();
       if(p.isOffScreen()){
-        this.poops.splice(i,1);this.dodged++;this.combo++;
+        this.poops.splice(i,1); this.dodged++; this.combo++;
         if(this.combo>this.maxCombo)this.maxCombo=this.combo;
         if(this.combo%10===0&&this.combo>0){this.comboText=`${this.combo} COMBO!`;this.comboTextTimer=60;}
         continue;
       }
       if(!this.player.isHit&&this.checkCol(this.player.getBounds(),p.getBounds())){
-        this.combo=0;this.player.isHit=true;this.player.hitTimer=40;
-        this.shakeTimer=12;this.shakeIntensity=6;
+        this.combo=0; this.player.isHit=true; this.player.hitTimer=40;
+        this.shakeTimer=12; this.shakeIntensity=6;
         for(let j=0;j<12;j++)this.particles.push(new Particle(p.x,p.y));
         this.poops.splice(i,1);
         if(this.shields>0){
-          this.shields--;this.shieldText=`방패 사용! (${this.shields}/${this.maxShields})`;this.shieldTextTimer=70;
+          this.shields--;
+          this.shieldText=`방패 사용! (${this.shields}/${this.maxShields})`; this.shieldTextTimer=70;
         } else {
           this.lives--;
           if(this.lives<=0){
@@ -672,21 +625,32 @@ class Game {
         }
       }
     }
-    for(let i=this.particles.length-1;i>=0;i--){this.particles[i].update();if(this.particles[i].life<=0)this.particles.splice(i,1);}
+
+    for(let i=this.particles.length-1;i>=0;i--){
+      this.particles[i].update();
+      if(this.particles[i].life<=0)this.particles.splice(i,1);
+    }
     if(this.shakeTimer>0)this.shakeTimer--;
     if(this.comboTextTimer>0)this.comboTextTimer--;
     if(this.stageTextTimer>0)this.stageTextTimer--;
     if(this.shieldTextTimer>0)this.shieldTextTimer--;
   }
+
   checkCol(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+
   draw(){
     ctx.save();
-    if(this.shakeTimer>0){const s=this.shakeIntensity*(this.shakeTimer/12);ctx.translate((Math.random()-0.5)*s,(Math.random()-0.5)*s);}
-    const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#0f1123');grad.addColorStop(1,'#16213e');
+    if(this.shakeTimer>0){
+      const s=this.shakeIntensity*(this.shakeTimer/12);
+      ctx.translate((Math.random()-0.5)*s,(Math.random()-0.5)*s);
+    }
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#0f1123');grad.addColorStop(1,'#16213e');
     ctx.fillStyle=grad;ctx.fillRect(-10,-10,W+20,H+20);
     this.stars.forEach(s=>s.draw(ctx,this.time));
     ctx.fillStyle='#1a2744';ctx.fillRect(0,H-35,W,35);
-    ctx.strokeStyle='#2a3f6a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,H-35);ctx.lineTo(W,H-35);ctx.stroke();
+    ctx.strokeStyle='#2a3f6a';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,H-35);ctx.lineTo(W,H-35);ctx.stroke();
     ctx.fillStyle='#2a3f6a';
     for(let i=0;i<W;i+=20)ctx.fillRect(i+((this.time*0.5)%20),H-28,2,2);
     this.shieldItems.forEach(si=>si.draw(ctx));
@@ -696,11 +660,15 @@ class Game {
     this.drawHUD();
     ctx.restore();
   }
+
   drawHUD(){
     const c=this.cfg();
-    ctx.fillStyle='#e94560';ctx.font='12px "Press Start 2P", monospace';ctx.textAlign='left';ctx.fillText('SCORE',12,24);
-    ctx.fillStyle='#fff';ctx.font='18px "Press Start 2P", monospace';ctx.fillText(`${this.score}`,12,46);
-    ctx.textAlign='center';ctx.fillStyle=c.color;ctx.font='9px "Press Start 2P", monospace';ctx.fillText(c.name,W/2,20);
+    ctx.fillStyle='#e94560';ctx.font='12px "Press Start 2P", monospace';
+    ctx.textAlign='left';ctx.fillText('SCORE',12,24);
+    ctx.fillStyle='#fff';ctx.font='18px "Press Start 2P", monospace';
+    ctx.fillText(`${this.score}`,12,46);
+    ctx.textAlign='center';ctx.fillStyle=c.color;ctx.font='9px "Press Start 2P", monospace';
+    ctx.fillText(c.name,W/2,20);
     for(let i=0;i<3;i++)this.drawHeart(ctx,W-22-i*26,12,8,i<this.lives?'#e94560':'#333');
     for(let i=0;i<this.maxShields;i++)this.drawShieldIcon(ctx,W-20-i*22,38,7,i<this.shields?'#4aa3df':'#333');
     if(this.comboTextTimer>0){
@@ -712,14 +680,19 @@ class Game {
       const a=this.stageTextTimer>70?(90-this.stageTextTimer)/20:this.stageTextTimer<20?this.stageTextTimer/20:1;
       ctx.save();ctx.globalAlpha=a;ctx.textAlign='center';
       ctx.font='22px "Press Start 2P", monospace';ctx.fillStyle=c.color;ctx.fillText(this.stageText,W/2,H/2-20);
-      if(this.stage>=1){ctx.font='9px "Press Start 2P", monospace';ctx.fillStyle='#4aa3df';ctx.fillText('방패 시스템 활성화!',W/2,H/2+10);}
+      if(this.stage>=1){
+        ctx.font='9px "Press Start 2P", monospace';ctx.fillStyle='#4aa3df';
+        ctx.fillText('방패 시스템 활성화!',W/2,H/2+10);
+      }
       ctx.restore();
     }
     if(this.shieldTextTimer>0){
       ctx.save();ctx.globalAlpha=Math.min(1,this.shieldTextTimer/15);ctx.textAlign='center';
-      ctx.font='10px "Press Start 2P", monospace';ctx.fillStyle='#4aa3df';ctx.fillText(this.shieldText,W/2,H/2+40);ctx.restore();
+      ctx.font='10px "Press Start 2P", monospace';ctx.fillStyle='#4aa3df';
+      ctx.fillText(this.shieldText,W/2,H/2+40);ctx.restore();
     }
   }
+
   drawHeart(ctx,x,y,s,color){
     ctx.save();ctx.fillStyle=color;ctx.beginPath();
     ctx.moveTo(x,y+s*0.3);
@@ -729,6 +702,7 @@ class Game {
     ctx.bezierCurveTo(x+s,y-s*0.3,x,y-s*0.3,x,y+s*0.3);
     ctx.closePath();ctx.fill();ctx.restore();
   }
+
   drawShieldIcon(ctx,x,y,s,color){
     ctx.save();ctx.fillStyle=color;ctx.beginPath();
     ctx.moveTo(x,y-s);ctx.lineTo(x-s*0.8,y-s*0.5);ctx.lineTo(x-s*0.8,y+s*0.2);
@@ -775,7 +749,7 @@ canvas.addEventListener('touchend',e=>{
 // ============================================================
 function gameLoop(){
   if(!game)return;
-  game.update();game.draw();
+  game.update(); game.draw();
   animFrameId=requestAnimationFrame(gameLoop);
 }
 
@@ -787,7 +761,7 @@ function startGame(){
 }
 
 // ============================================================
-// GAME OVER — with nickname + score submission
+// GAME OVER
 // ============================================================
 function showGameOver(reachedStage, finalScore) {
   overlay.classList.remove('hidden');
@@ -817,49 +791,40 @@ function showGameOver(reachedStage, finalScore) {
     </div>
   `;
 
-  // submit score
-  const submitBtn = document.getElementById('submitScoreBtn');
-  const submitMsg = document.getElementById('submitMsg');
-  const nicknameInput = document.getElementById('nicknameInput');
+  const submitBtn    = document.getElementById('submitScoreBtn');
+  const submitMsg    = document.getElementById('submitMsg');
+  const nicknameInput= document.getElementById('nicknameInput');
   let submitted = false;
 
   async function doSubmit() {
-    if (submitted) return;
-    const nick = nicknameInput.value.trim();
-    if (!nick) { submitMsg.style.color='#e94560'; submitMsg.textContent='닉네임을 입력해주세요!'; return; }
-    submitBtn.disabled = true;
-    submitMsg.style.color = '#aaa';
-    submitMsg.textContent = '저장 중...';
+    if(submitted)return;
+    const nick=nicknameInput.value.trim();
+    if(!nick){submitMsg.style.color='#e94560';submitMsg.textContent='닉네임을 입력해주세요!';return;}
+    submitBtn.disabled=true;
+    submitMsg.style.color='#aaa';submitMsg.textContent='저장 중...';
     try {
       await insertScore(nick, finalScore, reachedStage);
-      submitted = true;
-      submitMsg.style.color = '#2ecc71';
-      submitMsg.textContent = '✓ 등록 완료!';
-      submitBtn.textContent = '✓ 완료';
-      // show lb after short delay
-      setTimeout(() => openLeaderboard({ nickname: nick, score: finalScore }), 800);
+      submitted=true;
+      submitMsg.style.color='#2ecc71';submitMsg.textContent='✓ 등록 완료!';
+      submitBtn.textContent='✓ 완료';
+      setTimeout(()=>openLeaderboard({nickname:nick,score:finalScore}),800);
     } catch(e) {
-      submitBtn.disabled = false;
-      submitMsg.style.color = '#e94560';
-      submitMsg.textContent = '⚠ 저장 실패. 다시 시도해주세요.';
+      submitBtn.disabled=false;
+      submitMsg.style.color='#e94560';submitMsg.textContent='⚠ 저장 실패. 다시 시도해주세요.';
       console.error(e);
     }
   }
 
-  submitBtn.addEventListener('click', doSubmit);
-  nicknameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSubmit(); });
-
-  // go to leaderboard without submitting
-  document.getElementById('goLbBtn').addEventListener('click', () => {
-    openLeaderboard(null);
-  });
+  submitBtn.addEventListener('click',doSubmit);
+  nicknameInput.addEventListener('keydown',e=>{if(e.key==='Enter')doSubmit();});
+  document.getElementById('goLbBtn').addEventListener('click',()=>openLeaderboard(null));
 }
 
 // ============================================================
-// BUTTON WIRING (start screen)
+// BUTTON WIRING
 // ============================================================
-startBtn.addEventListener('click', startGame);
-document.getElementById('showLbBtn').addEventListener('click', () => openLeaderboard(null));
+startBtn.addEventListener('click',startGame);
+document.getElementById('showLbBtn').addEventListener('click',()=>openLeaderboard(null));
 </script>
 </body>
 </html>
