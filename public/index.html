@@ -52,7 +52,24 @@
 
   #gameOverText { color:#e94560; font-size:26px; margin-bottom:10px; text-shadow:0 0 20px rgba(233,69,96,0.5); }
   #finalScore   { color:#eee;    font-size:16px; margin-bottom:6px; }
-  #highScoreText{ color:#f5a623; font-size:13px; margin-bottom:16px; }
+  #highScoreText{ color:#f5a623; font-size:13px; margin-bottom:12px; }
+  #goComment {
+    color:#a8c0e8;
+    font-size:10px;
+    line-height:1.9;
+    text-align:center;
+    margin-bottom:14px;
+    padding:10px 16px;
+    background:rgba(255,255,255,0.05);
+    border-left:3px solid #4aa3df;
+    border-radius:4px;
+    max-width:280px;
+    animation: fadeSlideUp 0.5s ease both;
+  }
+  @keyframes fadeSlideUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0);   }
+  }
   .controls-hint { color:#777; font-size:11px; margin-top:14px; text-align:center; line-height:2.2; }
 
   #nicknameSection { display:flex; flex-direction:column; align-items:center; margin-bottom:14px; width:100%; }
@@ -1030,16 +1047,66 @@ function startGame(){
 }
 
 // ============================================================
+// 점수별 랜덤 멘트
+// ============================================================
+const GAME_OVER_COMMENTS = [
+  {
+    max: 50,
+    lines: [
+      "방금 시작 버튼 누르신 거 맞죠...?",
+      "똥 피하기가 아니라 똥 '맞기' 게임인가요?",
+      "중력의 법칙을 몸소 증명하셨습니다.",
+      "아직 똥독이 오르기도 전입니다.",
+    ]
+  },
+  {
+    max: 200,
+    lines: [
+      "나무늘보도 이것보단 잘 피할 듯!",
+      "순발력이 거의 인터넷 익스플로러급...",
+      "똥을 피하는 게 아니라 찾아다니시네요.",
+      "근처 비둘기들이 비웃고 지나갑니다.",
+    ]
+  },
+  {
+    max: 500,
+    lines: [
+      "나쁘지 않지만, 명예의 전당은 아직 멀어 보입니다.",
+      "그냥 '동네 똥 피하기 고수' 정도?",
+      "거의 다 왔는데! 방심은 금물입니다.",
+      "하늘에서 내리는 똥비가 좀 거셌나 보네요.",
+    ]
+  },
+  {
+    max: Infinity,
+    lines: [
+      "당신의 정수리는 무사합니까?",
+      "똥 피하기 국가대표 상비군으로 인정합니다.",
+      "화면을 뚫고 나오는 긴박함! 대단한 집중력!",
+      "이 정도면 똥이랑 대화도 가능하시겠는데요?",
+    ]
+  },
+];
+
+function getRandomComment(score) {
+  const bucket = GAME_OVER_COMMENTS.find(b => score < b.max);
+  const lines = bucket.lines;
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+
+// ============================================================
 // GAME OVER
 // ============================================================
 function showGameOver(reachedStage,finalScore){
+  const comment = getRandomComment(finalScore);
   overlay.classList.remove('hidden');
   overlay.innerHTML=`
     <div class="poop-title">💀</div>
     <div id="gameOverText">GAME OVER</div>
     <div id="finalScore">SCORE: ${finalScore}</div>
-    <div style="color:#aaa;font-size:11px;margin-bottom:4px;font-family:'Press Start 2P',monospace;">STAGE ${reachedStage} 도달</div>
+    <div style="color:#aaa;font-size:11px;margin-bottom:6px;font-family:'Press Start 2P',monospace;">STAGE ${reachedStage} 도달</div>
     <div id="highScoreText">🏆 BEST: ${highScore}</div>
+    <div id="goComment">"${comment}"</div>
     <div id="nicknameSection">
       <div id="nicknameLabel">🏆 명예의 전당 등록</div>
       <div id="nicknameInputRow">
