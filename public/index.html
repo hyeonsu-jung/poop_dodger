@@ -661,18 +661,18 @@ class Game {
       if(Math.random()<c.tripleChance) this.poops.push(new Poop(c.baseSpeed+1.0+Math.random()*c.speedVariance*0.5,Math.random()<c.swayChance*1.2));
     }
 
-    // ── 황금 똥 스폰 (3% 확률 / 180프레임마다 체크)
+    // ── 황금 똥 스폰 (60프레임마다 8% 확률 → 평균 약 12초에 1회)
     this.goldenSpawnTimer++;
-    if(this.goldenSpawnTimer>=180){
+    if(this.goldenSpawnTimer>=60){
       this.goldenSpawnTimer=0;
-      if(Math.random()<0.03) this.goldenPoops.push(new GoldenPoop(c.baseSpeed));
+      if(Math.random()<0.08) this.goldenPoops.push(new GoldenPoop(c.baseSpeed));
     }
 
-    // ── 하트 아이템 스폰 (1% 확률 / 300프레임마다)
+    // ── 하트 아이템 스폰 (120프레임마다 12% 확률 → 평균 약 17초에 1회)
     this.heartSpawnTimer++;
-    if(this.heartSpawnTimer>=300){
+    if(this.heartSpawnTimer>=120){
       this.heartSpawnTimer=0;
-      if(Math.random()<0.01&&this.lives<this.maxLives) this.heartItems.push(new HeartItem());
+      if(Math.random()<0.12&&this.lives<this.maxLives) this.heartItems.push(new HeartItem());
     }
 
     // ── 방패 스폰
