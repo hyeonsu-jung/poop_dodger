@@ -68,7 +68,7 @@
 
   #overlay .subtitle {
     color: #a8a8b3;
-    font-size: 10px;
+    font-size: 13px;
     margin-bottom: 24px;
     line-height: 1.8;
     text-align: center;
@@ -81,7 +81,7 @@
     border: none;
     padding: 12px 28px;
     font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 8px;
     transition: all 0.2s;
@@ -94,20 +94,20 @@
   .btn.secondary {
     background: #2a3f6a;
     box-shadow: 0 4px 0 #1a2744, 0 6px 20px rgba(42,63,106,0.3);
-    font-size: 10px;
+    font-size: 12px;
   }
   .btn.secondary:hover { box-shadow: 0 6px 0 #1a2744, 0 8px 25px rgba(42,63,106,0.4); }
   .btn.secondary:active { box-shadow: 0 2px 0 #1a2744; }
 
   .btn-row { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
 
-  #gameOverText { color: #e94560; font-size: 24px; margin-bottom: 10px; text-shadow: 0 0 20px rgba(233,69,96,0.5); }
-  #finalScore   { color: #eee; font-size: 14px; margin-bottom: 6px; }
-  #highScoreText{ color: #f5a623; font-size: 11px; margin-bottom: 16px; }
+  #gameOverText { color: #e94560; font-size: 26px; margin-bottom: 10px; text-shadow: 0 0 20px rgba(233,69,96,0.5); }
+  #finalScore   { color: #eee; font-size: 16px; margin-bottom: 6px; }
+  #highScoreText{ color: #f5a623; font-size: 13px; margin-bottom: 16px; }
 
   .controls-hint {
     color: #777;
-    font-size: 9px;
+    font-size: 11px;
     margin-top: 14px;
     text-align: center;
     line-height: 2.2;
@@ -123,7 +123,7 @@
   }
   #nicknameLabel {
     color: #a8a8b3;
-    font-size: 9px;
+    font-size: 11px;
     margin-bottom: 8px;
   }
   #nicknameInputRow {
@@ -138,7 +138,7 @@
     border-radius: 6px;
     color: #fff;
     font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
+    font-size: 13px;
     padding: 8px 12px;
     width: 160px;
     outline: none;
@@ -149,13 +149,13 @@
   #submitScoreBtn {
     background: #4aa3df;
     box-shadow: 0 3px 0 #2980b9;
-    font-size: 9px;
+    font-size: 11px;
     padding: 8px 12px;
   }
   #submitScoreBtn:hover { box-shadow: 0 5px 0 #2980b9; }
   #submitScoreBtn:active { box-shadow: 0 1px 0 #2980b9; }
   #submitMsg {
-    font-size: 9px;
+    font-size: 11px;
     margin-top: 6px;
     min-height: 16px;
   }
@@ -179,25 +179,25 @@
 
   #lbTitle {
     color: #f5a623;
-    font-size: 14px;
+    font-size: 17px;
     text-shadow: 0 0 16px rgba(245,166,35,0.5);
     margin-bottom: 4px;
     letter-spacing: 1px;
   }
   #lbSubtitle {
     color: #555;
-    font-size: 7px;
+    font-size: 10px;
     margin-bottom: 16px;
   }
 
   #lbTable {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8px;
+    font-size: 11px;
   }
   #lbTable thead tr th {
     color: #555;
-    font-size: 7px;
+    font-size: 10px;
     padding: 4px 6px;
     border-bottom: 1px solid #1e2d50;
     text-align: left;
@@ -224,7 +224,7 @@
   #lbTable tbody td:nth-child(3),
   #lbTable tbody td:nth-child(4) { text-align: right; }
 
-  .rank-medal { font-size: 13px; }
+  .rank-medal { font-size: 16px; }
   .stage-badge {
     background: #1a2744;
     border-radius: 4px;
@@ -235,7 +235,7 @@
 
   #lbLoading, #lbEmpty {
     color: #555;
-    font-size: 9px;
+    font-size: 11px;
     margin-top: 40px;
     text-align: center;
     line-height: 2;
@@ -795,7 +795,7 @@ function showGameOver(reachedStage, finalScore) {
     <div class="poop-title">💀</div>
     <div id="gameOverText">GAME OVER</div>
     <div id="finalScore">SCORE: ${finalScore}</div>
-    <div style="color:#aaa;font-size:9px;margin-bottom:4px;font-family:'Press Start 2P',monospace;">STAGE ${reachedStage} 도달</div>
+    <div style="color:#aaa;font-size:11px;margin-bottom:4px;font-family:'Press Start 2P',monospace;">STAGE ${reachedStage} 도달</div>
     <div id="highScoreText">🏆 BEST: ${highScore}</div>
 
     <div id="nicknameSection">
