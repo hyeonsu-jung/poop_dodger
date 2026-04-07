@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Poop Survivor</string>
+    <string name="title_activity_main">Poop Survivor</string>
+    <string name="package_name">kr.hyeonsujung.poopdodger</string>
+    <string name="custom_url_scheme">kr.hyeonsujung.poopdodger</string>
+</resources>

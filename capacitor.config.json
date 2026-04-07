@@ -1,0 +1,12 @@
+{
+  "appId": "kr.hyeonsujung.poopdodger",
+  "appName": "Poop Survivor",
+  "webDir": "public",
+  "server": {
+    "url": "https://poop-dodger.vercel.app",
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
