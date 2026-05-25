@@ -194,15 +194,17 @@
 
 <script>
 // ============================================================
-// API
+// API (Vercel — 토스 미니앱·로컬 빌드에서도 동작)
 // ============================================================
+const SCORES_API = 'https://poop-dodger.vercel.app/api/scores';
+
 async function fetchLeaderboard() {
-  const res = await fetch('/api/scores');
+  const res = await fetch(SCORES_API);
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 async function insertScore(nickname, score, stage) {
-  const res = await fetch('/api/scores', {
+  const res = await fetch(SCORES_API, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body:JSON.stringify({nickname, score, stage}),
   });

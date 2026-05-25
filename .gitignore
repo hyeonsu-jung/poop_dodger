@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# Apps in Toss (AIT)
+.granite/
+dist/
+*.ait
+
 # Next.js
 .next/
 out/

@@ -6,8 +6,8 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: '환경변수가 설정되지 않았습니다.' });
   }
 
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://poop-dodger.vercel.app');
+  // CORS (토스 미니앱 WebView·Vercel 웹 모두 허용)
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
