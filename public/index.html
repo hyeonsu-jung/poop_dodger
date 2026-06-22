@@ -7,15 +7,22 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    height: 100%; height: 100dvh;
+  }
   body {
     background:#1a1a2e; display:flex; justify-content:center;
-    align-items:center; min-height:100vh; width:100%;
+    align-items:center; width:100%;
     font-family:'Press Start 2P',monospace; overflow:hidden;
   }
   /* 게임 + 버튼 수직 정렬 컨테이너 */
   #appContainer {
     display:flex; flex-direction:column; align-items:center;
     justify-content:center;
+    /* 브라우저 주소창 포함 실제 뷰포트 높이에 딱 맞춤 */
+    height: 100vh; height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
   }
   #gameWrapper {
     position:relative; border:4px solid #e94560; border-radius:12px;
