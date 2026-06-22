@@ -130,6 +130,43 @@
   #lbScrollWrap::-webkit-scrollbar-track { background:#0f1b33; }
   #lbScrollWrap::-webkit-scrollbar-thumb { background:#2a3f6a; border-radius:2px; }
 
+  /* ── MOBILE TOUCH CONTROLS ── */
+  #touchControls {
+    position:absolute; bottom:0; left:0; right:0; height:130px;
+    display:none;
+    pointer-events:none; z-index:12;
+    padding:0 10px 10px;
+    box-sizing:border-box;
+  }
+  #touchControls.visible { display:flex; align-items:flex-end; justify-content:space-between; }
+  .touch-btn {
+    pointer-events:all;
+    width:72px; height:72px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,0.35);
+    background:rgba(15,27,51,0.65);
+    backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+    font-size:28px; color:rgba(255,255,255,0.85);
+    user-select:none; -webkit-user-select:none;
+    touch-action:none;
+    transition:background 0.1s, transform 0.08s;
+    box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  }
+  .touch-btn:active,
+  .touch-btn.pressed {
+    background:rgba(233,69,96,0.55);
+    border-color:rgba(233,69,96,0.8);
+    transform:scale(0.92);
+  }
+  .touch-lr { display:flex; gap:10px; }
+  #btnJump {
+    width:80px; height:80px; font-size:32px;
+    background:rgba(74,163,223,0.5);
+    border-color:rgba(74,163,223,0.7);
+  }
+  #btnJump.pressed { background:rgba(74,163,223,0.85); }
+
   /* ── PAUSE OVERLAY ── */
   #pausePanel {
     position:absolute; top:0; left:0; right:0; bottom:0;
@@ -165,7 +202,16 @@
       <button class="btn" id="startBtn">START</button>
       <button class="btn secondary" id="showLbBtn">🏆 명예의 전당</button>
     </div>
-    <div class="controls-hint">← → 방향키 또는 터치로 이동<br>↑ 또는 스페이스바로 점프<br>P / ESC — 일시정지</div>
+    <div class="controls-hint">◀ ▶ 버튼 또는 방향키로 이동<br>▲ 버튼 또는 스페이스바로 점프<br>P / ESC — 일시정지</div>
+  </div>
+
+  <!-- ── MOBILE TOUCH CONTROLS ── -->
+  <div id="touchControls">
+    <div class="touch-lr">
+      <button class="touch-btn" id="btnLeft">◀</button>
+      <button class="touch-btn" id="btnRight">▶</button>
+    </div>
+    <button class="touch-btn" id="btnJump">▲</button>
   </div>
 
   <!-- ── PAUSE PANEL ── -->
@@ -1021,22 +1067,41 @@ document.addEventListener('keyup',e=>{
     if(e.code==='ArrowUp'||e.code==='KeyW'||e.code==='Space')game.keys.up=false;
   }
 });
+// ── 터치 컨트롤 버튼 ──────────────────────────────────────────
+const touchControls = document.getElementById('touchControls');
+const btnLeft  = document.getElementById('btnLeft');
+const btnRight = document.getElementById('btnRight');
+const btnJump  = document.getElementById('btnJump');
+
+function isTouchDevice(){ return navigator.maxTouchPoints>0 || 'ontouchstart' in window; }
+if(isTouchDevice()) touchControls.classList.add('visible');
+window.addEventListener('resize',()=>{ if(isTouchDevice()) touchControls.classList.add('visible'); });
+
+function bindTouchBtn(btn, onDown, onUp){
+  btn.addEventListener('touchstart', e=>{ e.preventDefault(); btn.classList.add('pressed'); onDown(); }, {passive:false});
+  btn.addEventListener('touchend',   e=>{ e.preventDefault(); btn.classList.remove('pressed'); onUp(); },   {passive:false});
+  btn.addEventListener('touchcancel',e=>{ e.preventDefault(); btn.classList.remove('pressed'); onUp(); },   {passive:false});
+}
+
+bindTouchBtn(btnLeft,
+  ()=>{ if(game&&!game.gameOver&&!paused){ game.keys.left=true; game.keys.right=false; } },
+  ()=>{ if(game) game.keys.left=false; }
+);
+bindTouchBtn(btnRight,
+  ()=>{ if(game&&!game.gameOver&&!paused){ game.keys.right=true; game.keys.left=false; } },
+  ()=>{ if(game) game.keys.right=false; }
+);
+bindTouchBtn(btnJump,
+  ()=>{ if(game&&!game.gameOver&&!paused) game.keys.up=true; },
+  ()=>{ if(game) game.keys.up=false; }
+);
+
+// 캔버스 탭: 일시정지 재개 전용
 canvas.addEventListener('touchstart',e=>{
+  if(paused){ e.preventDefault(); togglePause(); return; }
   e.preventDefault();
-  // 일시정지 중이면 탭으로 재개
-  if(paused){ togglePause(); return; }
-  const t=e.touches[0],r=canvas.getBoundingClientRect();
-  const tx=t.clientX-r.left,ty=t.clientY-r.top;
-  if(game&&!game.gameOver&&!paused){
-    if(ty<r.height*0.5)game.keys.up=true;
-    if(tx<r.width/2){game.keys.left=true;game.keys.right=false;}
-    else{game.keys.right=true;game.keys.left=false;}
-  }
 },{passive:false});
-canvas.addEventListener('touchend',e=>{
-  e.preventDefault();
-  if(game){game.keys.left=false;game.keys.right=false;game.keys.up=false;}
-},{passive:false});
+canvas.addEventListener('touchend',e=>{ e.preventDefault(); },{passive:false});
 
 // ============================================================
 // GAME LOOP
