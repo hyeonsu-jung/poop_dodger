@@ -1136,19 +1136,27 @@ canvas.addEventListener('touchend',e=>{ e.preventDefault(); },{passive:false});
 // ============================================================
 // GAME LOOP
 // ============================================================
-function gameLoop(){
-  if(!game)return;
+// 60fps 고정 — 144Hz·120Hz 기기에서도 동일한 게임 속도 보장
+const TARGET_FPS = 60;
+const FRAME_MS   = 1000 / TARGET_FPS;
+let   lastFrameTime = 0;
+
+function gameLoop(timestamp){
+  if(!game) return;
+  animFrameId = requestAnimationFrame(gameLoop);
+  const elapsed = timestamp - lastFrameTime;
+  if(elapsed < FRAME_MS - 1) return; // 아직 1프레임 시간이 안 됐으면 건너뜀
+  lastFrameTime = timestamp - (elapsed % FRAME_MS);
   if(!paused){ game.update(); game.draw(); }
-  animFrameId=requestAnimationFrame(gameLoop);
 }
 function startGame(){
   overlay.classList.add('hidden');
   pausePanel.classList.remove('visible');
   paused=false;
   game=new Game();
-  if(animFrameId)cancelAnimationFrame(animFrameId);
-  gameLoop();
-  // 버튼에 포커스가 남아있으면 Enter/Space가 버튼을 다시 클릭하므로 즉시 해제
+  if(animFrameId) cancelAnimationFrame(animFrameId);
+  lastFrameTime = 0;
+  animFrameId = requestAnimationFrame(gameLoop);
   if(document.activeElement) document.activeElement.blur();
 }
 
